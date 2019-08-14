@@ -1,114 +1,120 @@
 -- Apagar as colunas para refazer tudo
-DROP TABLE IF EXISTS Publicacoes;
-DROP TABLE IF EXISTS Artigos;
-DROP TABLE IF EXISTS Pesquisadores;
-DROP TABLE IF EXISTS Periodicos;
+DROP TABLE IF EXISTS publicacoes;
+DROP TABLE IF EXISTS artigos;
+DROP TABLE IF EXISTS pesquisadores;
+DROP TABLE IF EXISTS periodicos;
 
 /*
  * Início
  */
  -- Tabela original da questão
-CREATE TABLE Pesquisadores (
-  "codPesquisador" serial NOT NULL,
-  "nomePesquisador" varchar(100) NOT NULL,
-  "codArtigo" serial NOT NULL,
-  "tituloArtigo" varchar(100) NOT NULL,
-  "paginaInicial" integer NOT NULL,
-  "paginaFinal" integer NOT NULL,
-  "codPeriodico" serial NOT NULL,
-  "nomePeriodico" varchar(100) NOT NULL,
+CREATE TABLE pesquisadores (
+  "id" serial NOT NULL,
+  "nome_pesquisador" varchar(100) NOT NULL,
+  "cod_artigo" serial NOT NULL,
+  "titulo_artigo" varchar(100) NOT NULL,
+  "pagina_inicial" integer NOT NULL,
+  "pagina_final" integer NOT NULL,
+  "cod_periodico" serial NOT NULL,
+  "nome_periodico" varchar(100) NOT NULL,
 
-  CONSTRAINT "codsPesquisadorArtigoPeriodicoKey"
-    PRIMARY KEY ("codPesquisador", "codArtigo", "codPeriodico")
+  CONSTRAINT "pesquisadores_pkey"
+    PRIMARY KEY ("id", "cod_artigo", "cod_periodico")
 );
 
 /*
  * 1FN
  */
--- Cria a tabela de artigo
-CREATE TABLE Artigos (
-  "codArtigo" serial PRIMARY KEY,
-  "codPesquisador" serial NOT NULL,
-  "tituloArtigo" varchar(100) NOT NULL,
-  "paginaInicial" integer NOT NULL,
-  "paginaFinal" integer NOT NULL,
-  "codPeriodico" serial NOT NULL,
-  "nomePeriodico" varchar(100) NOT NULL
+-- Cria a tabela de artigos
+CREATE TABLE artigos (
+  "id" serial NOT NULL,
+  "pesquisador_id" serial NOT NULL,
+  "titulo" varchar(100) NOT NULL,
+  "pagina_inicial" integer NOT NULL,
+  "pagina_final" integer NOT NULL,
+  "cod_periodico" serial NOT NULL,
+  "nome_periodico" varchar(100) NOT NULL,
+
+  CONSTRAINT artigos_pkey
+    PRIMARY KEY ("id")
 );
 -- Inserir os dados da tabela original
-INSERT INTO Artigos ("codPesquisador","codArtigo","tituloArtigo","paginaInicial","paginaFinal","codPeriodico","nomePeriodico")
-  SELECT "codPesquisador","codArtigo","tituloArtigo","paginaInicial","paginaFinal","codPeriodico","nomePeriodico"
-  FROM Pesquisadores;
--- Agora remove as várias Primary Keys
-ALTER TABLE Pesquisadores
-  DROP CONSTRAINT "codsPesquisadorArtigoPeriodicoKey";
--- Apaga as colunas que não usamos mais em Pesquisador
-ALTER TABLE Pesquisadores
-  DROP COLUMN "codArtigo",
-  DROP COLUMN "tituloArtigo",
-  DROP COLUMN "paginaInicial",
-  DROP COLUMN "paginaFinal",
-  DROP COLUMN "codPeriodico",
-  DROP COLUMN "nomePeriodico";
--- Agora declara a Primary Key de Pesquisador
-ALTER TABLE Pesquisadores
-  ADD CONSTRAINT "codPesquisadorKey"
-    PRIMARY KEY ("codPesquisador");
--- Chave estrangeira em Artigo para Pesquisador
-ALTER TABLE Artigos
-  ADD CONSTRAINT codPesquisadorFkey FOREIGN KEY ("codPesquisador")
-    REFERENCES Pesquisadores("codPesquisador") MATCH SIMPLE
+INSERT INTO artigos ("pesquisador_id","id","titulo","pagina_inicial","pagina_final","cod_periodico","nome_periodico")
+  SELECT "id","cod_artigo","titulo_artigo","pagina_inicial","pagina_final","cod_periodico","nome_periodico"
+  FROM pesquisadores;
+-- Agora remove as várias PK de pesquisadores
+ALTER TABLE pesquisadores
+  DROP CONSTRAINT "pesquisadores_pkey";
+-- Apaga as colunas que não usamos mais em pesquisadores
+ALTER TABLE pesquisadores
+  DROP COLUMN "cod_artigo",
+  DROP COLUMN "titulo_artigo",
+  DROP COLUMN "pagina_inicial",
+  DROP COLUMN "pagina_final",
+  DROP COLUMN "cod_periodico",
+  DROP COLUMN "nome_periodico";
+-- Agora declara a PK de pesquisadores
+ALTER TABLE pesquisadores
+  ADD CONSTRAINT "pesquisadores_pkey"
+    PRIMARY KEY ("id");
+-- Chave estrangeira em artigos referente a pesquisadores
+ALTER TABLE artigos
+  ADD CONSTRAINT artigos_pesquisador_id_foreign FOREIGN KEY ("pesquisador_id")
+    REFERENCES pesquisadores("id") MATCH SIMPLE
     ON UPDATE NO ACTION ON DELETE NO ACTION;
 
  /*
  * 2FN
  */
--- Cria a tabela de publicacoes que é N para N entre Pesquisador e Artigo
-CREATE TABLE Publicacoes (
-  "codPublicacao" serial NOT NULL,
-  "codPesquisador" serial NOT NULL,
-  "codArtigo" serial NOT NULL,
+-- Cria a tabela de publicacoes que serve como N para N entre pesquisadores e artigos
+CREATE TABLE publicacoes (
+  "id" serial NOT NULL,
+  "pesquisador_id" serial NOT NULL,
+  "artigo_id" serial NOT NULL,
 
-  CONSTRAINT codPublicacaoKey
-    PRIMARY KEY ("codPublicacao"),
+  CONSTRAINT publicacoes_pkey
+    PRIMARY KEY ("id"),
 
-  CONSTRAINT codPesquisadorFkey FOREIGN KEY ("codPesquisador")
-    REFERENCES Pesquisadores("codPesquisador") MATCH SIMPLE
+  CONSTRAINT publicacoes_pesquisador_id_foreign FOREIGN KEY ("pesquisador_id")
+    REFERENCES pesquisadores("id") MATCH SIMPLE
     ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT codArtigoFkey FOREIGN KEY ("codArtigo")
-    REFERENCES Artigos("codArtigo") MATCH SIMPLE
+  CONSTRAINT publicacoes_artigo_id_foreign FOREIGN KEY ("artigo_id")
+    REFERENCES artigos("id") MATCH SIMPLE
     ON UPDATE NO ACTION ON DELETE NO ACTION
 );
--- Insere os dados de relação
-INSERT INTO Publicacoes ("codPesquisador", "codArtigo")
-  SELECT "codPesquisador","codArtigo"
-  FROM Artigos;
--- Apaga as colunas que não usamos mais em Pesquisador
-ALTER TABLE Artigos
-  DROP CONSTRAINT "codpesquisadorfkey",
-  DROP COLUMN "codPesquisador";
+-- Insere os dados em publicacoes
+INSERT INTO publicacoes ("pesquisador_id", "artigo_id")
+  SELECT "pesquisador_id","id"
+  FROM artigos;
+-- Apaga as colunas que não usamos mais em artigos
+ALTER TABLE artigos
+  DROP CONSTRAINT "artigos_pesquisador_id_foreign",
+  DROP COLUMN "pesquisador_id";
 
 /*
  * 3FN
  */
--- Cria a tabela de periodico
-CREATE TABLE Periodicos (
-  "codPeriodico" serial NOT NULL,
-  "nomePeriodico" varchar(100) NOT NULL,
+-- Cria a tabela de periodicos
+CREATE TABLE periodicos (
+  "id" serial NOT NULL,
+  "nome" varchar(100) NOT NULL,
 
-  CONSTRAINT codPeriodicoKey
-    PRIMARY KEY ("codPeriodico")
+  CONSTRAINT periodicos_pkey
+    PRIMARY KEY ("id")
 );
--- Inserir os dados da tabela original
-INSERT INTO Periodicos ("codPeriodico", "nomePeriodico")
-  SELECT "codPeriodico", "nomePeriodico"
-  FROM Artigos;
--- Apaga as colunas que Artigos não necessita mais
+-- Inserir os dados de artigos em periodicos
+INSERT INTO periodicos ("id", "nome")
+  SELECT "cod_periodico", "nome_periodico"
+  FROM artigos;
+-- Apaga as colunas que artigos não necessita mais
+ALTER TABLE artigos
+  DROP COLUMN "nome_periodico";
+-- Renomeia a coluna referente a periodicos em artigos
+ALTER TABLE artigos
+  RENAME COLUMN "cod_periodico" TO "periodico_id";
+-- Chave estrangeira em artigos para periodicos
 ALTER TABLE Artigos
-  DROP COLUMN "nomePeriodico";
--- Chave estrangeira em Artigo para Periodico
-ALTER TABLE Artigos
-  ADD CONSTRAINT codPeriodicoFkey FOREIGN KEY ("codPeriodico")
-    REFERENCES Periodicos("codPeriodico") MATCH SIMPLE
+  ADD CONSTRAINT artigos_periodico_id_foreign FOREIGN KEY ("periodico_id")
+    REFERENCES periodicos("id") MATCH SIMPLE
     ON UPDATE NO ACTION ON DELETE NO ACTION;
 
