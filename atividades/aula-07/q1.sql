@@ -10,13 +10,13 @@ DROP TABLE IF EXISTS Periodicos;
  -- Tabela original da questão
 CREATE TABLE Pesquisadores (
   "codPesquisador" serial NOT NULL,
-  "nomePesquisador" VARCHAR(100) NOT NULL,
+  "nomePesquisador" varchar(100) NOT NULL,
   "codArtigo" serial NOT NULL,
-  "tituloArtigo" VARCHAR(100) NOT NULL,
+  "tituloArtigo" varchar(100) NOT NULL,
   "paginaInicial" integer NOT NULL,
   "paginaFinal" integer NOT NULL,
   "codPeriodico" serial NOT NULL,
-  "nomePeriodico" VARCHAR(100) NOT NULL,
+  "nomePeriodico" varchar(100) NOT NULL,
 
   CONSTRAINT "codsPesquisadorArtigoPeriodicoKey"
     PRIMARY KEY ("codPesquisador", "codArtigo", "codPeriodico")
@@ -29,11 +29,11 @@ CREATE TABLE Pesquisadores (
 CREATE TABLE Artigos (
   "codArtigo" serial PRIMARY KEY,
   "codPesquisador" serial NOT NULL,
-  "tituloArtigo" VARCHAR(100) NOT NULL,
+  "tituloArtigo" varchar(100) NOT NULL,
   "paginaInicial" integer NOT NULL,
   "paginaFinal" integer NOT NULL,
   "codPeriodico" serial NOT NULL,
-  "nomePeriodico" VARCHAR(100) NOT NULL
+  "nomePeriodico" varchar(100) NOT NULL
 );
 -- Inserir os dados da tabela original
 INSERT INTO Artigos ("codPesquisador","codArtigo","tituloArtigo","paginaInicial","paginaFinal","codPeriodico","nomePeriodico")
@@ -65,16 +65,19 @@ ALTER TABLE Artigos
  */
 -- Cria a tabela de publicacoes que é N para N entre Pesquisador e Artigo
 CREATE TABLE Publicacoes (
-    "codPublicacao" serial PRIMARY KEY,
-    "codPesquisador" serial NOT NULL,
-    "codArtigo" serial NOT NULL,
+  "codPublicacao" serial NOT NULL,
+  "codPesquisador" serial NOT NULL,
+  "codArtigo" serial NOT NULL,
 
-    CONSTRAINT codPesquisadorFkey FOREIGN KEY ("codPesquisador")
-        REFERENCES Pesquisadores("codPesquisador") MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE NO ACTION,
-    CONSTRAINT codArtigoFkey FOREIGN KEY ("codArtigo")
-        REFERENCES Artigos("codArtigo") MATCH SIMPLE
-        ON UPDATE NO ACTION ON DELETE NO ACTION
+  CONSTRAINT codPublicacaoKey
+    PRIMARY KEY ("codPublicacao"),
+
+  CONSTRAINT codPesquisadorFkey FOREIGN KEY ("codPesquisador")
+    REFERENCES Pesquisadores("codPesquisador") MATCH SIMPLE
+    ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT codArtigoFkey FOREIGN KEY ("codArtigo")
+    REFERENCES Artigos("codArtigo") MATCH SIMPLE
+    ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 -- Insere os dados de relação
 INSERT INTO Publicacoes ("codPesquisador", "codArtigo")
@@ -90,8 +93,11 @@ ALTER TABLE Artigos
  */
 -- Cria a tabela de periodico
 CREATE TABLE Periodicos (
-  "codPeriodico" serial PRIMARY KEY,
-  "nomePeriodico" VARCHAR(100) NOT NULL
+  "codPeriodico" serial NOT NULL,
+  "nomePeriodico" varchar(100) NOT NULL,
+
+  CONSTRAINT codPeriodicoKey
+    PRIMARY KEY ("codPeriodico")
 );
 -- Inserir os dados da tabela original
 INSERT INTO Periodicos ("codPeriodico", "nomePeriodico")
