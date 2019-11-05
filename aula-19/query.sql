@@ -7,7 +7,7 @@ DROP TRIGGER IF EXISTS orcamentos_i ON orcamentos;
 DROP FUNCTION IF EXISTS orcamentos_insert;
 DROP TRIGGER IF EXISTS itens_i ON itens;
 DROP FUNCTION IF EXISTS itens_insert;
-DROP VIEW  IF EXISTS vw_orcamentos;
+DROP VIEW IF EXISTS vw_orcamentos;
 
 -- c) Crie uma função (FUNCTION) que faça a verificação (inserção e alteração) dos campos
 --   nomeCliente, CPF e email da tabela Cliente, de tal forma que valores nulos não sejam
